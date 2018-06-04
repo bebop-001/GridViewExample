@@ -1,5 +1,6 @@
 package com.kana_tutor.gridviewexample;
 
+import android.os.Parcelable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -25,6 +26,7 @@ public class MainActivity extends AppCompatActivity {
 
     GridView gridView;
     StringGridAdapter stringGridAdapter;
+    private static Parcelable state;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,6 +35,24 @@ public class MainActivity extends AppCompatActivity {
         gridView = findViewById(R.id.grid_view);
         stringGridAdapter = new StringGridAdapter();
         gridView.setAdapter(stringGridAdapter);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        /*
+        if (state != null)
+            gridView.onRestoreInstanceState(state);
+            */
+        // gridView.scrollTo(0, 1200);
+        gridView.setSelection(55);
+        gridView.requestLayout();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        state = gridView.onSaveInstanceState();
     }
 
     private class ViewHolder {
