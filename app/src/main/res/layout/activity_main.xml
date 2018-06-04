@@ -5,15 +5,23 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context=".MainActivity">
+    <Button
+        android:id="@+id/previous_row"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="previous row"
+        android:onClick="changeRowOnClick"
+        android:textSize="20sp" />
 
     <Button
-        android:id="@+id/button"
+        android:id="@+id/next_row"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:text="next row"
-        android:onClick="nextRowOnClick"
-        android:textSize="30sp" />
+        android:onClick="changeRowOnClick"
+        android:textSize="20sp" />
 
     <GridView
         android:id="@+id/grid_view"

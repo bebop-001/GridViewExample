@@ -1,6 +1,5 @@
 package com.kana_tutor.gridviewexample;
 
-import android.os.Parcelable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -14,6 +13,7 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.getSimpleName();
@@ -26,7 +26,7 @@ public class MainActivity extends AppCompatActivity {
 
     GridView gridView;
     StringGridAdapter stringGridAdapter;
-    private static Parcelable state;
+    private int selectedItemPosition = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,40 +40,56 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        /*
-        if (state != null)
-            gridView.onRestoreInstanceState(state);
-            */
-        // gridView.scrollTo(0, 1200);
-        gridView.setSelection(55);
-        gridView.requestLayout();
+        Log.d(TAG, "onResume: selection = " + gridView.getSelectedItemPosition());
+        gridView.setSelection(selectedItemPosition);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        state = gridView.onSaveInstanceState();
+        Log.d(TAG, "onPause");
     }
 
+    private static int vhId;
     private class ViewHolder {
+        int id = vhId++;
         long itemId = -1;
+        int position = -1;
     }
 
-    public void nextRowOnClick(View view) {
+    public void changeRowOnClick(View view) {
+        int columns = gridView.getNumColumns();
+        int id = view.getId();
+        if (id == R.id.next_row) {
+            selectedItemPosition += columns;
+            if (selectedItemPosition >= stringIntList.size())
+                selectedItemPosition = stringIntList.size() - 1;
+        }
+        else if (id == R.id.previous_row) {
+            selectedItemPosition -= columns;
+            if (selectedItemPosition < 0)
+                selectedItemPosition = 0;
+        }
         Log.d(TAG, "nextRowOnClick");
+        // position from setSelection isn't necessarily related
+        // to getSelectedItemPosition.  Depends on touch mode, etc..??
+        // int position = gridView.getSelectedItemPosition();
+        gridView.setSelection(selectedItemPosition);
+        gridView.invalidate();
     }
     private static Toast onClickToast;
     public void stringIntOnClick(View v) {
         ViewHolder vh = (ViewHolder)v.getTag();
-        if (vh != null) {
-            if (onClickToast != null)
-                onClickToast.cancel();
-            onClickToast = Toast.makeText(this, "Button ID:" + vh.itemId
-                    + " Text:" + ((Button)v).getText(), Toast.LENGTH_SHORT);
-            onClickToast.show();
-        }
+        selectedItemPosition = vh.position;
+        gridView.setSelection(selectedItemPosition);
+        if (onClickToast != null)
+            onClickToast.cancel();
+        onClickToast = Toast.makeText(this, "Button ID:" + vh.itemId
+                + " Text:" + ((Button)v).getText(), Toast.LENGTH_SHORT);
+        onClickToast.show();
     }
 
+    private static int buttonCounter;
     private class StringGridAdapter extends BaseAdapter {
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
@@ -82,6 +98,7 @@ public class MainActivity extends AppCompatActivity {
             if (button == null) {
                 LayoutInflater inflater = LayoutInflater.from(parent.getContext());
                 button = (Button)inflater.inflate(R.layout.string_int_textview, null, false);
+                Log.d(TAG, "getView:button:" + buttonCounter++);
             }
             ViewHolder vh = (ViewHolder)button.getTag();
             if (vh == null) {
@@ -90,8 +107,12 @@ public class MainActivity extends AppCompatActivity {
             }
             if (vh.itemId != getItemId(position)) {
                 vh.itemId = getItemId(position);
+                vh.position = position;
                 button.setText((String)getItem(position));
             }
+            Log.d(TAG, String.format(
+                "getView: position:%d, text:\"%s\", vh.id:%d"
+                , position, getItem(position), vh.id));
             return button;
         }
         @Override
